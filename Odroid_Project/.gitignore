@@ -1,0 +1,4 @@
+#Environment folder (venv)
+odroid/
+Keras_Classification_Model/keras/
+__pycache__/
