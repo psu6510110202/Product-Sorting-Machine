@@ -24,7 +24,7 @@ print ('Argument List:', str(sys.argv))
 
 # Argument parsing setup for command-line inputs like port name and saving images
 parser = argparse.ArgumentParser(description='product sorting system')
-parser.add_argument('-p', '--portname', type=str, help='port name', default='COM3')
+parser.add_argument('-p', '--portname', type=str, help='port name', default='/dev/ttyACM0')
 parser.add_argument('-s', '--saveimg', type=int, help='save imgs', default=0)
 myparser = parser.parse_args()
 
