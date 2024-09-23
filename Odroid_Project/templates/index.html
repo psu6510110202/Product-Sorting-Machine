@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Metadata for the document, including character encoding and viewport settings -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Page title that will appear in the browser tab -->
     <title>Sorting Production Line</title>
+
+    <!-- Styles for the page -->
     <style>
-        /* Basic styling for the webpage */
+        /* Basic styles for the body of the page */
         body {
             font-family: 'Arial', sans-serif;
             background-color: #f4f4f4;
@@ -17,54 +21,60 @@
             height: 100vh;
         }
 
+        /* Style for the page header */
         h1 {
             font-size: 28px;
             margin: 20px;
         }
 
-        /* Styling for the table that holds the content */
+        /* Style for the table, which holds the UI components */
         table {
             width: 760px;
             border-collapse: collapse;
             background-color: white;
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1); /* Adds subtle shadow to the table */
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
         }
 
-        /* Styling for table cells and headers */
+        /* Style for the table cells and headers */
         table td, th {
             border: none;
             padding: 20px;
             text-align: center;
         }
 
-        /* Styling for table header */
+        /* Style for the table header background */
         th {
             background-color: #f9f9f9;
         }
 
-        /* Styling for the button */
+        /* Button styling */
         input[type="button"] {
             font-size: 20px;
             padding: 15px 30px;
-            background-color: #d9534f; /* Red color for OFF state */
+            background-color: #d9534f; /* Default red color */
             border: none;
             border-radius: 5px;
             color: white;
             cursor: pointer;
-            transition: background-color 0.3s ease; /* Smooth color transition on hover */
+            transition: background-color 0.3s ease;
         }
 
-        /* Change button color on hover */
+        /* Change button background color when hovered */
         input[type="button"]:hover {
-            background-color: #c9302c; /* Darker red on hover */
+            background-color: #c9302c;
         }
 
-        /* Change button style when the motor is running */
+        /* Style for the button when it is in running state */
         input[type="button"].running {
-            background-color: #5cb85c; /* Green color for RUNNING state */
+            background-color: #5cb85c; /* Green for running state */
         }
 
-        /* Styling for the number input field */
+        /* Style for the light button when it is on */
+        input[type="button"].brighting {
+            background-color: #5cb85c; /* Green for light on state */
+        }
+
+        /* Input styling for the number field */
         input[type="number"] {
             width: 180px;
             height: 40px;
@@ -75,14 +85,14 @@
             margin-top: 10px;
         }
 
-        /* Styling for the live video feed image */
+        /* Style for images, with responsive width and rounded corners */
         img {
-            width: 100%; /* Image takes full width of the container */
+            width: 100%;
             height: auto;
-            border-radius: 10px; /* Rounded corners */
+            border-radius: 10px;
         }
 
-        /* Styling for the text below the button */
+        /* Margin and font size for divs below the buttons */
         div {
             margin-top: 10px;
             font-size: 18px;
@@ -91,55 +101,62 @@
 </head>
 <body>
 
-    <!-- Main container with a table structure -->
+    <!-- Main content table holding buttons and video feed -->
     <table>
+        <!-- Header row with a title -->
         <tr>
             <th colspan="2">
-                <h1>Sorting Production Line</h1> <!-- Heading for the page -->
+                <h1>Sorting Production Line</h1>
             </th>
         </tr>
+        <!-- Second row with buttons and video feed -->
         <tr>
+            <!-- First column for the control buttons and number input -->
             <th valign="middle">
-                <!-- Button to start/stop the motor -->
+                <!-- Button to control light state -->
+                <input type="button" id="startLight" value="LIGHT_OFF" onclick="onStartStopLight()">
+                <br><br>
+                <!-- Button to control conveyor motor -->
                 <input type="button" id="startBtn" value="OFF" onclick="onStartStop()">
-                <div>Conveyor Motor Value:</div> <!-- Label for the PWM input -->
-                <!-- Input to set the PWM value for controlling motor speed -->
-                <input type="number" id="pwm" name="pwm" min="250" max="1024" value="360" onchange="pwmChange()">
+                <!-- Text describing the motor speed setting -->
+                <div>Conveyor Motor Value:</div>
+                <!-- Input to adjust the motor speed -->
+                <input type="number" id="pwm" name="pwm" min="100" max="255" value="255" onchange="pwmChange()">
             </th>
+            <!-- Second column with a placeholder for video feed -->
             <th>
-                <!-- Placeholder for the live video feed (use url_for to dynamically insert video stream) -->
                 <img src="{{ url_for('video_feed') }}" alt="Live Video Feed">
             </th>
         </tr>
     </table>
 
     <script>
-        /* Variable to track the current state of the motor (RUN/OFF) */
+        // Variable to track the mode of the motor (on or off)
         var mode = "/OFF";
 
-        /* Function to handle Start/Stop button click */
+        // Function to start or stop the conveyor motor
         function onStartStop() {
-            var btn = document.getElementById("startBtn");
-
-            /* Toggle the button value and appearance between OFF and RUNNING */
+            var btn = document.getElementById("startBtn"); // Get the motor button element
             if (btn.value == "OFF") {
-                btn.value = "RUNNING..."; /* Change button text to RUNNING */
-                btn.classList.add("running"); /* Add the green RUNNING class */
-                mode = "/RUN"; /* Update the mode to RUN */
+                // If the button is OFF, set it to RUNNING state
+                btn.value = "RUNNING...";
+                btn.classList.add("running"); // Add a class to change color
+                mode = "/RUN"; // Change the mode to RUN
             } else {
-                btn.value = "OFF"; /* Change button text back to OFF */
-                btn.classList.remove("running"); /* Remove the green RUNNING class */
-                mode = "/OFF"; /* Update the mode to OFF */
+                // If the button is running, set it back to OFF
+                btn.value = "OFF";
+                btn.classList.remove("running"); // Remove the running class
+                mode = "/OFF"; // Change the mode to OFF
             }
 
-            /* Send an HTTP GET request to the server with the current mode */
+            // Send an HTTP request to the server to change motor state
             var url = mode;
             var xhr = new XMLHttpRequest();
             xhr.open("GET", url, true);
             xhr.overrideMimeType('text/plain; charset=x-user-defined');
             xhr.send(null);
 
-            /* Optional: Handle response from the server if needed */
+            // Optional: Handle the server's response
             xhr.onreadystatechange = function () {
                 if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
                     // Handle response if needed
@@ -147,19 +164,52 @@
             }
         }
 
-        /* Function to handle changes in the PWM value (motor speed control) */
-        function pwmChange() {
-            var pwm = document.getElementById("pwm"); /* Get the PWM input element */
-            var pwmValue = pwm.value; /* Get the current value of the input */
+        // Variable to track the state of the light (on or off)
+        var modeLight = "/LIGHT_OFF";
 
-            /* Send an HTTP GET request to the server with the new PWM value */
+        // Function to turn the light on or off
+        function onStartStopLight() {
+            var light = document.getElementById("startLight"); // Get the light button element
+            if (light.value == "LIGHT_OFF") {
+                // If the light is off, turn it on
+                light.value = "Brigthing"; // Change button text
+                light.classList.add("brighting"); // Add a class to change color
+                modeLight = "/LIGHT_ON"; // Change the mode to LIGHT_ON
+            } else {
+                // If the light is on, turn it off
+                light.value = "LIGHT_OFF"; // Change button text back
+                light.classList.remove("brighting"); // Remove the brighting class
+                modeLight = "/LIGHT_OFF"; // Change the mode to LIGHT_OFF
+            }
+
+            // Send an HTTP request to the server to change the light state
+            var url = modeLight;
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.overrideMimeType('text/plain; charset=x-user-defined');
+            xhr.send(null);
+
+            // Optional: Handle the server's response
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+                    // Handle response if needed
+                }
+            }
+        }
+
+        // Function to change the PWM (Pulse Width Modulation) value for the motor speed
+        function pwmChange() {
+            var pwm = document.getElementById("pwm"); // Get the number input element
+            var pwmValue = pwm.value; // Get the value from the input
+
+            // Send an HTTP request to the server with the new PWM value
             var url = "/PWM?" + "val=" + pwmValue.toString();
             var xhr = new XMLHttpRequest();
             xhr.open("GET", url, true);
             xhr.overrideMimeType('text/plain; charset=x-user-defined');
             xhr.send(null);
 
-            /* Optional: Handle response from the server if needed */
+            // Optional: Handle the server's response
             xhr.onreadystatechange = function () {
                 if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
                     // Handle response if needed

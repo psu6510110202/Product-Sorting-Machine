@@ -14,6 +14,9 @@ import time
 import socket
 import argparse
 import sys
+import odroid_wiringpi as wpi
+import requests
+
 
 # Prints the number and list of arguments passed to the script
 print ('Number of arguments:', len(sys.argv), 'arguments.')
@@ -24,6 +27,13 @@ parser = argparse.ArgumentParser(description='product sorting system')
 parser.add_argument('-p', '--portname', type=str, help='port name', default='COM3')
 parser.add_argument('-s', '--saveimg', type=int, help='save imgs', default=0)
 myparser = parser.parse_args()
+
+#Set LED GPIO pin on Odroid via WPI interface
+wpi.wiringPiSetup()
+wpi.pinMode(1, 1)
+wpi.pinMode(4, 1)
+wpi.pinMode(5, 1)
+wpi.pinMode(10, 1)
 
 # Camera module selection
 Camera = camera_opencv.Camera
@@ -61,10 +71,28 @@ conveyorState = 0
 thresh = 190
 maxValue = 255 
 
-# Create a UDP socket for broadcasting messages over the network
+# Configuration
+UDP_IP = "192.168.91.246"  # IP address of the ESP8266 NodeMCU
+UDP_PORT = 4210           # Port number on which ESP8266 is listening
+
+# ThingSpeak API key and base URL
+api_url = "https://api.thingspeak.com/update?api_key=K1JD9ZF7R8CBS60L&field"
+
+def send_data_to_thingspeak(field_number, value):
+    # Dynamically construct the field parameter (e.g., 'field1', 'field2', etc.)
+    # Send the GET request
+    response = requests.get(api_url + f'{field_number+1}={value}')
+    
+    # Check if the request was successful
+    if response.status_code == 200:
+        print(f"Data sent successfully to field{field_number+1}!")
+    else:
+        print(f"Failed to send data. Status code: {response.status_code}")
+
+# Create UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-server_address = ('192.168.1.255', 1102)  # Broadcast address and port
+server_address = (UDP_IP, UDP_PORT)
 
 # Function to apply white balance correction on the input image
 def whiteBalance(img):
@@ -137,6 +165,7 @@ def gen(camera):
         outSerial = ''
         frame = camera.get_frame()                         # Capture a frame from the camera
         frame = whiteBalance(frame)                        # Apply white balance correction
+
         while SERIAL.inWaiting() > 0:                      # Check if any serial data is incoming
             outSerial = SERIAL.readline().decode("utf-8")  # Read data from Arduino
         
@@ -165,6 +194,7 @@ def gen(camera):
               result = 'Detected:{}({}%) in {} s'.format(CLASS_NAME[int(classNo)][0], certainty, exe_time)
               SERIAL.write(('Detected:{}\r\n'.format(classNo)).encode())
               CLASS_NAME[int(classNo)] = (CLASS_NAME[int(classNo)][0], CLASS_NAME[int(classNo)][1] + 1)
+              send_data_to_thingspeak(classNo, CLASS_NAME[int(classNo)][1])
               print(result)
 
             # Detected state - run conveyor and send START signal over UDP
@@ -184,7 +214,7 @@ def gen(camera):
                                 (0,255,0), 2)
           frame = cv2.putText(frame, CLASS_NAME[cnt][0] + ': {}'.format(CLASS_NAME[cnt][1]), 
                               (int(productBox[0][0])+5,int((productBox[0][1]+productBox[1][1])/2)), 
-                              cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
+                              cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 2)
           cnt = cnt+1
 
         frame = cv2.imencode('.jpg', frame)[1].tobytes()                # Encode frame as JPEG for streaming
@@ -206,6 +236,8 @@ def OFF():
     sock.sendto(b'STOP', server_address)    # Send STOP signal over UDP
     conveyorState = 0                       # Set conveyor state to stopped
     resp = jsonify(success=True)
+    for i in range(10):
+      sock.sendto(b'STOP', server_address)
     return resp
 
 # Route to start the conveyor system
@@ -217,6 +249,8 @@ def RUN():
     sock.sendto(b'START', server_address)             # Send START signal over UDP
     conveyorState = 1                                 # Set conveyor state to running
     resp = jsonify(success=True)
+    for i in range(10):
+        sock.sendto(b"START", server_address)
     return resp
 
 # Route to update the PWM value
@@ -229,6 +263,24 @@ def PWM():
       SERIAL.write(('RUN:'+str(serverPWM)).encode())  # Update Arduino with new PWM value if conveyor is running
     resp = jsonify(success=True)
     return resp
+
+@app.route('/LIGHT_ON')
+def LIGHT_ON():
+  wpi.digitalWrite(1, 1)
+  wpi.digitalWrite(4, 1)
+  wpi.digitalWrite(5, 1)
+  wpi.digitalWrite(10, 1)
+  resp = jsonify(success=True)
+  return resp
+
+@app.route('/LIGHT_OFF')
+def LIGHT_OFF():
+  wpi.digitalWrite(1, 0)
+  wpi.digitalWrite(4, 0)
+  wpi.digitalWrite(5, 0)
+  wpi.digitalWrite(10, 0)
+  resp = jsonify(success=True)
+  return resp
 
 # Run the Flask app if script is executed directly
 if __name__ == '__main__':
