@@ -56,13 +56,13 @@ DETECTION_THRESHOLD = 500
 
 # Class names and initial count for detected objects
 CLASS_NAME = {
-  0 : ("BATMAN LOGO",0),
-  1 : ("P4F LOGO",0),
-  2 : ("SUPERMAN LOGO",0)
+  0 : ("ฺButcher Premium",0),
+  1 : ("Butcher Normal",0),
+  2 : ("Butcher Shop",0)
 }
 
 # Initial server PWM value
-serverPWM = 360
+serverPWM = 255
 
 # Conveyor state (0 = stopped, 1 = running)
 conveyorState = 0
