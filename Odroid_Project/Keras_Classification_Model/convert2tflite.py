@@ -36,13 +36,6 @@ import glob
 import cv2
 import numpy as np
 
-# Print TensorFlow and Keras versions to verify environment setup
-print('********************************Tensorflow version*****************')
-print(tf.__version__)
-print('********************************Keras version**********************')
-print(keras.__version__)
-print('*******************************************************************')
-
 # Number of calibration steps for quantization
 num_calibration_steps = 100
 

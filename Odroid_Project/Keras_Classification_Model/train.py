@@ -36,33 +36,6 @@ from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import Dropout, Flatten, Dense, Input
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 
-# Set GPU memory fraction (optional)
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-    try:
-        # Set TensorFlow to use only as much GPU memory as needed
-        tf.config.experimental.set_memory_growth(gpus[0], True)
-        
-        # Set a limit of 6GB for GPU memory usage
-        tf.config.experimental.set_virtual_device_configuration(
-            gpus[0],
-            [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=6144)]
-        )
-    except RuntimeError as e:
-        print(e)  # Handle errors that occur if GPUs are already initialized
-
-# Print TensorFlow version
-print(tf.__version__)
-
-# Check if a GPU is being used
-print("***************************************device***************************************")
-if tf.test.gpu_device_name():
-    print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
-else:
-    print("Please install GPU version of TensorFlow")
-print("***************************************device***************************************")
-
-
 # Set image dimensions
 img_width, img_height = 32, 32
 
