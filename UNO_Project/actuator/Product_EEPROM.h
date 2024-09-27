@@ -24,8 +24,6 @@ void EEPROM_Erase_and_Write1B(uint16_t addr, uint8_t data)
   SREG = backupSREG;          //คืนค่าเรจิสเตอร์ตัวบ่งชี้กลับสู่สถานะเดิม
 }
 
-
-
 void EEPROM_Erase_only(uint16_t addr)
 {  
   while(EECR & (1<<EEPE)) ;   //วนซ้ำจนกว่าบิต EEPE จะเปลี่ยนเป็นตรรกะต่ำ
@@ -71,7 +69,3 @@ void save_NewProductCount(uint8_t productCount){
   EEPROM_Erase_only(addr);
   EEPROM_Erase_and_Write1B(addr+1, productCount);
 }
-
-
-
-

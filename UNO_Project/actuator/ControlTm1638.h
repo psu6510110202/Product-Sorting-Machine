@@ -1,7 +1,7 @@
 //define pin for communication with TM1638
-const int strobe = 8;     
-const int clock = 9;  
-const int data = 10;   
+const int strobe = 11;     
+const int clock = 12;  
+const int data = 13;   
 
 int hour_tm, minute_tm, sec_tm;
 long prev_time_tm1638;
