@@ -49,7 +49,6 @@ enum STATE {
   STATE_RUN,            //Running belt conveyors 
   STATE_PAUSE,          //Pause belt conveyors to classify product box
   STATE_DETECTED,       //Product box is detected and already processed
-  STATE_TEST            //Not used anymore
 };
 
 void setup() {
@@ -113,15 +112,6 @@ void loop() {
       //Set the motor speed using motorSetSpeed function with dcMotorPWNVal
       motorSetSpeed(dcMotorPWMVal);
 
-    }else if(data.indexOf("TEST")!=-1){
-
-      //Test working of Sorting servo motor
-      //Set system state to STATE_TEST
-      systemState = STATE_TEST;
-      int testServo = getValue(data, ':', 1).toInt();
-      Serial.println(testServo);
-      servoHorizon.write(testServo);
-
     }else if(data.indexOf("Detected")!=-1){
 
       //If incoming data is Detected then record the product type
@@ -162,8 +152,6 @@ void loop() {
     //When system state is STATE_STOP then stop the motors
     motorStop();
 
-  }else if(systemState==STATE_TEST){
-    //Noting to do anymore for testing purposes
   }else if(systemState==STATE_DETECTED){
 
     //When system state is STATE_DETECTED then 
